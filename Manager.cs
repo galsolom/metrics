@@ -3,28 +3,35 @@ using Newtonsoft.Json.Linq;
 
 namespace ghmonitor {
     public class Manager {
-        private readonly List<string> monitoredServices;
+        public readonly List<string> monitoredServices;
         private readonly string _baseUrl;
 
         public Manager () {
             _baseUrl = getBaseUrl ();
             monitoredServices = getMonitoredServices ();
         }
-        public async Task report () {
-            var stats = await getComponentStatus ();
-            var _results = stats.Keys.Where (a => monitoredServices.Contains(a));
-            if (_results.Count () > 0) {
-                foreach (var result in _results) {
-                    if (stats[result] != "operational") {
-                        Logger.log (LogLevel.Information, $"{result} is currently {stats[result]}");
-                    }
-                }
-            }
-        }
 
         List<string> getMonitoredServices () =>
             Environment.GetEnvironmentVariable ("GH_MONITORED").Split (",").ToList ();
+            
         string getBaseUrl () => Environment.GetEnvironmentVariable ("GH_STATUSURL");
+
+        public async Task<Dictionary<string, int>> report () {
+            var metrics = new Dictionary<string, int> ();
+            var stats = await getComponentStatus ();
+            var _results = stats.Keys.Where (a => monitoredServices.Contains (a));
+            foreach (var result in _results) {
+                var operational = stats[result] == "operational";
+                if (operational) {
+                    Logger.log (LogLevel.Information, $"{result} is currently {stats[result]}");
+                } else {
+                    Logger.log (LogLevel.Error, $"{result} is currently {stats[result]}");
+                }
+
+                metrics.Add (utils.formatName (result), stats[result] == "operational" ? 1 : 0);
+            }
+            return metrics;
+        }
 
         public async Task testConnectivity () {
             try {
@@ -49,14 +56,10 @@ namespace ghmonitor {
         }
         async Task<Dictionary<string, string>> getComponentStatus () {
             var _jobject = await get (_baseUrl);
-            var _dict = new Dictionary<string, string> ();
-            var componenets = _jobject["components"];
-            var comps = JArray.FromObject (componenets);
-            foreach (var component in comps) {
-                // can be changed to ignore list
-                if (!component["name"].ToString ().Contains ("www.githubstatus.com"))
-                    _dict.Add (component["name"].ToString (), component["status"].ToString ());
-            }
+            var _dict = _jobject["components"]
+                .ToDictionary (p => p["name"], p => p["status"])
+                .Where (kv => !kv.Key.Contains ("githubstatus")).ToDictionary (p => (string) p.Key, p => (string) p.Value);
+
             return _dict;
         }
 

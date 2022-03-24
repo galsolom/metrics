@@ -27,12 +27,14 @@ docker build . -t x:x
 ```
 run and monitor specific services
 ```bash
-docker run -e GH_STATUSURL="https://www.githubstatus.com/api/v2/components.json" -e GH_MONITORED="API Requests,Codespaces,GitHub Packages" x:x
+docker run -e  GH_STATUSURL="https://www.githubstatus.com/api/v2/components.json" -e GH_MONITORED="API Requests,Codespaces,GitHub Packages" x:x
 ```
 all services
 ```bash
-docker run -e GH_STATUSURL="https://www.githubstatus.com/api/v2/components.json" -e GH_MONITORED="Git Operations,API Requests,Webhooks,Issues,Pull Requests,GitHub Actions,GitHub Packages,GitHub Pages" x:x
+docker run -p 8083:8083 -e GH_STATUSURL="https://www.githubstatus.com/api/v2/components.json" -e GH_MONITORED="Git Operations,API Requests,Webhooks,Issues,Pull Requests,GitHub Actions,GitHub Packages,GitHub Pages,Codespaces" x:x
 ```
+
+open browser at 8083
 
 CI/CD would include:
 
@@ -44,4 +46,4 @@ CI/CD would include:
 
 
 improvements:
-stdout report to prometheus /metrics to align with existing tools and systems
+stdout report to prometheus /metrics to align with existing tools and systems - DONE
