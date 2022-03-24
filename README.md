@@ -5,9 +5,7 @@
 ### summary
 written in .net6
 
-every 10 seconds the service will poll "[this](https://www.githubstatus.com/api/v2/components.json)" and report of any of the services that is not "operational"
-
-the service will output only on startup and service errors/downtime
+every 5 seconds the service will poll "[this](https://www.githubstatus.com/api/v2/components.json)" and report of any of the services that is not "operational" both to stdout and service status metrics to http://localhost:8083/metrics
 
 The service should run in k8s.(added pod.yaml)
 
@@ -23,18 +21,18 @@ GH_MONITORED="API Requests,Codespaces,GitHub Packages"
 
 ## build
 ```bash
-docker build . -t x:x
+docker build . -t ghmonitor:0.1
 ```
 run and monitor specific services
 ```bash
-docker run -e  GH_STATUSURL="https://www.githubstatus.com/api/v2/components.json" -e GH_MONITORED="API Requests,Codespaces,GitHub Packages" x:x
+docker run -d -p 8083:8083 -e  GH_STATUSURL="https://www.githubstatus.com/api/v2/components.json" -e GH_MONITORED="API Requests,Codespaces,GitHub Packages" ghmonitor:0.1
 ```
 all services
 ```bash
-docker run -p 8083:8083 -e GH_STATUSURL="https://www.githubstatus.com/api/v2/components.json" -e GH_MONITORED="Git Operations,API Requests,Webhooks,Issues,Pull Requests,GitHub Actions,GitHub Packages,GitHub Pages,Codespaces" x:x
+docker run -d  -p 8083:8083 -e GH_STATUSURL="https://www.githubstatus.com/api/v2/components.json" -e GH_MONITORED="Git Operations,API Requests,Webhooks,Issues,Pull Requests,GitHub Actions,GitHub Packages,GitHub Pages,Codespaces" ghmonitor:0.1
 ```
 
-open browser at 8083
+open browser at http://localhost:8083/metrics
 
 CI/CD would include:
 
