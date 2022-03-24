@@ -34,7 +34,7 @@ docker run -d  -p 8083:8083 -e GH_STATUSURL="https://www.githubstatus.com/api/v2
 
 open browser at http://localhost:8083/metrics
 
-CI/CD would include:
+### CI/CD would include:
 
 * scan(snyk) *.csproj
 * test
@@ -43,5 +43,6 @@ CI/CD would include:
 * (deploy) update argo .values file to update service's version to the newly created version
 
 
-improvements:
-stdout report to prometheus /metrics to align with existing tools and systems - DONE
+### improvements:
+
+* stdout report to prometheus /metrics to align with existing tools and systems - DONE
